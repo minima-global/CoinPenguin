@@ -16,9 +16,11 @@ const AppProvider = ({ children }: IProps) => {
 
   /** Minima stuff */
   const [_logs, setLogs] = useState<string[]>([]);
+  const [_sqlProfile, setSQLProfile] = useState(null);
   const [_promptArchiveInfo, setPromptArchiveInfo] = useState(false);
   const [_promptSyncBlocks, setPromptSyncBlocks] = useState(false);
   const [_promptIntegrityCheck, setPromptIntegrityCheck] = useState(false);
+  const [_promptSQLProfile, setPromptSQLProfile] = useState(false);
 
   const [_archiveInfo, setArchiveInfo] = useState(null);
 
@@ -28,6 +30,10 @@ const AppProvider = ({ children }: IProps) => {
       (window as any).MDS.init((msg: any) => {
         if (msg.event === "inited") {
           // do something Minim-y
+
+          if (!_sqlProfile) {
+            promptSQLProfileSetup();
+          }
         }
 
         if (msg.event === "MINIMALOG") {
@@ -50,6 +56,10 @@ const AppProvider = ({ children }: IProps) => {
     setPromptIntegrityCheck((prevState) => !prevState);
   };
 
+  const promptSQLProfileSetup = () => {
+    setPromptSQLProfile((prevState) => !prevState);
+  };
+
   return (
     <appContext.Provider
       value={{
@@ -62,8 +72,14 @@ const AppProvider = ({ children }: IProps) => {
         _promptIntegrityCheck,
         promptIntegrityCheck,
 
+        _promptSQLProfile,
+        promptSQLProfileSetup,
+
         _archiveInfo,
         setArchiveInfo,
+
+        _sqlProfile,
+        setSQLProfile,
 
         _logs,
         setLogs,

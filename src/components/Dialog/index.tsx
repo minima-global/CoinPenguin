@@ -2,7 +2,7 @@ import { ReactElement } from "react";
 
 interface ComponentProps {
   children: ReactElement;
-  dismiss: () => void;
+  dismiss?: () => void;
 }
 
 const Dialog = ({ children, dismiss }: ComponentProps) => {
