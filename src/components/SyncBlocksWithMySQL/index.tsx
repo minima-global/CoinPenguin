@@ -1,54 +1,71 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { appContext } from "../../AppContext";
 import Dialog from "../Dialog";
 import Logs from "../Logs";
 
 const SyncBlocksWithMySQL = () => {
-  const { _promptSyncBlocks, promptSyncBlocks, _archiveInfo, setArchiveInfo } =
-    useContext(appContext);
+  const {
+    _sqlProfile,
+    _promptSyncBlocks,
+    promptSyncBlocks,
+    _archiveInfo,
+    handleIntegrityCheck,
+    setArchiveInfo,
+    _currentBlock,
+    getTopBlock,
+    setLogs,
+    promptPendingDialog,
+  } = useContext(appContext);
 
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<false | string>(false);
-  // Initialize state with an object containing properties for each form input
-  const [formData, setFormData] = useState({
-    host: "minimysql",
-    database: "archivedb",
-    user: "archiveuser",
-    password: "",
-  });
-  const [passwordVisibility, setPasswordVisibility] = useState(false);
 
-  // Handler for input changes
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
+  useEffect(() => {
+    if (_sqlProfile && _promptSyncBlocks) {
+      checkIntegrity();
+    }
+  }, [_sqlProfile, _promptSyncBlocks]);
 
-    // Update the corresponding property in the state object
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
+  const checkIntegrity = async () => {
+    setLoading(true);
+    try {
+      await handleIntegrityCheck();
+      await getTopBlock();
+
+      setLoading(false);
+    } catch (error) {
+      setError(error as string);
+    }
   };
 
   // Handler for form submission
   const handleSubmit = (e) => {
     e.preventDefault();
+    setStep(1);
+    setLogs([]);
+    setLoading(true);
+
     // Access form data in the state object (formData)
     (window as any).MDS.cmd(
-      `mysql action:update host:${formData.host} database:${formData.database} user:${formData.user} password:${formData.password}`,
+      `mysql action:update host:${_sqlProfile.host} database:${_sqlProfile.database} user:${_sqlProfile.user} password:${_sqlProfile.password}`,
       (response: any) => {
         console.log(response);
         const { pending, status, error } = response;
         if (pending) {
-          return setStep(2);
+          setLoading(false);
+          return promptPendingDialog();
         }
 
         if (!status && !pending) {
+          setLoading(false);
+
           return setError(error as string);
         }
 
+        setLoading(false);
         setArchiveInfo(response.response);
-        return setStep(1);
+        return setStep(3);
       }
     );
     // You can perform further actions, such as sending data to a server
@@ -58,10 +75,16 @@ const SyncBlocksWithMySQL = () => {
     return null;
   }
 
+  const canBeginSync =
+    _archiveInfo &&
+    "end" in _archiveInfo &&
+    _currentBlock &&
+    parseInt(_archiveInfo.end) !== parseInt(_currentBlock);
+
   return (
-    <Dialog dismiss={promptSyncBlocks}>
+    <Dialog dismiss={() => (!loading ? promptSyncBlocks : null)}>
       <div className="h-full grid items-center">
-        <div className="bg-white rounded-lg mx-4 md:mx-0 min-h-[40vh] p-4 dark:bg-black text-left">
+        <div className="bg-white rounded-lg mx-4 md:mx-0 min-h-[40vh] p-4 dark:bg-black text-left grid grid-cols-1 grid-rows-[auto_1fr]">
           <div className="grid grid-cols-[1fr_auto] items-center">
             <h1 className="text-lg text-black dark:text-white font-bold">
               Sync Blocks
@@ -93,68 +116,63 @@ const SyncBlocksWithMySQL = () => {
           {step === 0 && (
             <>
               <p className="text-sm mt-4">
-                Running{" "}
-                <code className="bg-teal-500 text-[14px] px-2 rounded-full dark:text-black text-white">
-                  mysql action: update
-                </code>{" "}
-                with your login details will sync your archive blocks to your
-                mysql database. Any future updates will be incremental, only
-                syncing the new blocks that are not already in the MySQL
-                database.
+                Sync block will sync up all your current archive blocks to your
+                MySQL Archive database table (syncblocks).
               </p>
-              <div className="mt-4">
-                <form className="grid gap-1" onSubmit={handleSubmit}>
-                  <label className="grid">
-                    <span className="mb-1 font-bold">Host</span>
-                    <input
-                      className="bg-slate-200 text-black p-2 rounded-lg"
-                      placeholder="Enter host"
-                      name="host"
-                      onChange={handleInputChange}
-                      value={formData.host}
-                    />
-                  </label>
-                  <label className="grid">
-                    <span className="mb-1 font-bold">Database</span>
-                    <input
-                      className="bg-slate-200 text-black p-2 rounded-lg"
-                      placeholder="Enter db name"
-                      name="database"
-                      onChange={handleInputChange}
-                      value={formData.database}
-                    />
-                  </label>
-                  <label className="grid">
-                    <span className="mb-1 font-bold">User</span>
-                    <input
-                      className="bg-slate-200 text-black p-2 rounded-lg"
-                      placeholder="Enter username"
-                      name="user"
-                      onChange={handleInputChange}
-                      value={formData.user}
-                    />
-                  </label>
-                  <label className="grid">
-                    <span className="mb-1 font-bold">Password</span>
-                    <input
-                      className="bg-slate-200 text-black p-2 rounded-lg"
-                      type={passwordVisibility ? "text" : "password"}
-                      placeholder="Enter password"
-                      name="password"
-                      onChange={handleInputChange}
-                      value={formData.password}
-                    />
-                  </label>
 
-                  <button className="mt-3 w-full">Submit</button>
-                  <button
-                    className="mt-2 w-full mx-auto"
-                    onClick={promptSyncBlocks}
-                  >
-                    Dismiss
-                  </button>
-                </form>
-              </div>
+              {loading && (
+                <div>
+                  <div className="flex items-center gap-1">
+                    <svg
+                      className="animate-spin"
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      strokeWidth="2"
+                      stroke="currentColor"
+                      fill="none"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                      <path d="M12 3a9 9 0 1 0 9 9" />
+                    </svg>
+                    <p className="text-sm font-bold animate-pulse">
+                      Checking archive's integrity...
+                    </p>
+                  </div>
+                  <p className="text-sm">
+                    Please be patient, should be done soon.
+                  </p>
+                </div>
+              )}
+              {!loading && !error && (
+                <div className="mt-4">
+                  <form className="grid gap-1" onSubmit={handleSubmit}>
+                    <div>
+                      {_archiveInfo && "end" in _archiveInfo ? (
+                        <p>Last synced block: {_archiveInfo.end}</p>
+                      ) : (
+                        <p>N/A</p>
+                      )}
+                    </div>
+                    <div>{"Current block: " + _currentBlock}</div>
+                    <button
+                      disabled={!canBeginSync}
+                      className="mt-3 w-full disabled:bg-opacity-50 disabled:cursor-notallowed disabled:hover:outline-none disabled:cursor-not-allowed bg-black text-white"
+                    >
+                      Begin Sync
+                    </button>
+                    <button
+                      className="mt-2 w-full mx-auto"
+                      onClick={promptSyncBlocks}
+                    >
+                      Dismiss
+                    </button>
+                  </form>
+                </div>
+              )}
             </>
           )}
           {step === 1 && (
@@ -163,13 +181,69 @@ const SyncBlocksWithMySQL = () => {
                 <Logs />
               </div>
 
+              {loading && (
+                <div className="my-4">
+                  <div className="flex items-center gap-1">
+                    <svg
+                      className="animate-spin"
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      strokeWidth="2"
+                      stroke="currentColor"
+                      fill="none"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                      <path d="M12 3a9 9 0 1 0 9 9" />
+                    </svg>
+                    <p className="text-sm font-bold animate-pulse">
+                      Syncing up your blocks...
+                    </p>
+                  </div>
+                  <p className="text-sm">
+                    Please be patient, should be done soon.
+                  </p>
+                </div>
+              )}
+            </>
+          )}
+          {step === 3 && (
+            <>
+              <div className="mt-4 bg-white dark:bg-black dark:text-slate-300">
+                <h3>Sync up completed!</h3>
+              </div>
               <button
                 className="mt-4 w-full mx-auto"
                 onClick={() => {
                   setStep(0);
+                  promptSyncBlocks();
                 }}
               >
-                Back
+                Back to dashboard
+              </button>
+            </>
+          )}
+
+          {error && (
+            <>
+              <div className="mt-4 dark:text-slate-300 text-center  bg-red-50 py-3">
+                <h3 className="font-bold">Hmm, something went wrong.</h3>
+                <p>
+                  {typeof error === "object" ? JSON.stringify(error) : error}
+                </p>
+              </div>
+              <button
+                className="mt-4 w-full mx-auto"
+                onClick={() => {
+                  setStep(0);
+                  setError(false);
+                  promptSyncBlocks();
+                }}
+              >
+                Back to dashboard
               </button>
             </>
           )}

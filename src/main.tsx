@@ -3,11 +3,14 @@ import ReactDOM from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 import AppProvider from "./AppContext.tsx";
+import KBar from "./providers/KBar/index.tsx";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
     <AppProvider>
-      <App />
+      <KBar>
+        <App />
+      </KBar>
     </AppProvider>
   </React.StrictMode>
 );

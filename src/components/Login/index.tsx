@@ -8,13 +8,11 @@ const Login = () => {
     _promptSQLProfile,
     setSQLProfile,
     promptSQLProfileSetup,
-    _archiveInfo,
-    setArchiveInfo,
+    promptErrorDialog,
   } = useContext(appContext);
 
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<false | string>(false);
   // Initialize state with an object containing properties for each form input
   const [formData, setFormData] = useState({
     host: "minimysql",
@@ -54,11 +52,10 @@ const Login = () => {
         if (!status && !pending) {
           setLoading(false);
 
-          return setError(error as string);
+          return promptErrorDialog(error as string);
         }
 
         setLoading(false);
-
         setSQLProfile({
           database: formData.database,
           host: formData.host,
@@ -84,7 +81,7 @@ const Login = () => {
               Setup MySQL Profile
             </h1>
             <a
-              href="https://docs.minima.global/docs/runanode/archivenodes#update-mysql"
+              href="https://docs.minima.global/docs/runanode/archivenodes/"
               target="_blank"
             >
               <svg
@@ -110,8 +107,8 @@ const Login = () => {
           {step === 0 && (
             <>
               <p className="text-sm mt-4">
-                Login to your MySQL Profile so you can interact with your MySQL
-                Archive Database.
+                Login to your Archive Database MySQL Profile to interact with
+                your archive data.
               </p>
               <div className="mt-4">
                 <form className="grid gap-1" onSubmit={handleSubmit}>
@@ -157,9 +154,17 @@ const Login = () => {
                     />
                   </label>
 
-                  <button className="mt-3 w-full">
+                  <button className="mt-3 w-full bg-black text-white font-bold">
                     {!_sqlProfile ? "Set" : "Change"}
                   </button>
+                  {_sqlProfile && (
+                    <button
+                      onClick={promptSQLProfileSetup}
+                      className="mt-1 w-full"
+                    >
+                      Dismiss
+                    </button>
+                  )}
                 </form>
               </div>
             </>
