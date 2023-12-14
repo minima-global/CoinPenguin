@@ -1,7 +1,10 @@
 import { useContext } from "react";
 import { appContext } from "../../AppContext";
 
-const ProfileHeader = () => {
+interface IProps {
+  readOnly?: boolean;
+}
+const ProfileHeader = ({ readOnly = false }: IProps) => {
   const { _sqlProfile, promptSQLProfileSetup } = useContext(appContext);
 
   return (
@@ -9,9 +12,12 @@ const ProfileHeader = () => {
       {!_sqlProfile ? (
         <button onClick={promptSQLProfileSetup}>Set</button>
       ) : (
-        <div onClick={promptSQLProfileSetup}>
+        <div
+          className="text-center"
+          onClick={readOnly ? null : promptSQLProfileSetup}
+        >
           {_sqlProfile && (
-            <div className="flex  hover:outline-teal-500 outline px-2 py-1  gap-1 hover:bg-opacity-50 hover:cursor-pointer">
+            <div className="flex shadow-inner shadow-teal-500 outline-teal-500 outline px-2 py-1  gap-1 hover:bg-opacity-50 hover:cursor-pointer w-max">
               <div>
                 <h3 className="text-inherit dark:text-teal-500 font-semibold text-sm">
                   {_sqlProfile.user}

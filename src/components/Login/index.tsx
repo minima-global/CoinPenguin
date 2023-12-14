@@ -1,6 +1,7 @@
 import { useContext, useState } from "react";
 import { appContext } from "../../AppContext";
 import Dialog from "../Dialog";
+import ProfileHeader from "../ProfileHeader";
 
 const Login = () => {
   const {
@@ -75,7 +76,7 @@ const Login = () => {
   return (
     <Dialog>
       <div className="h-full grid items-center">
-        <div className="bg-white rounded-lg mx-4 md:mx-0 min-h-[40vh] p-4 dark:bg-black text-left">
+        <div className="bg-white rounded-lg mx-4 md:mx-0 min-h-[40vh] p-4 dark:bg-black text-left grid grid-cols-1 grid-rows-[auto_1fr]">
           <div className="grid grid-cols-[1fr_auto] items-center">
             <h1 className="text-lg text-black dark:text-white font-bold">
               Setup MySQL Profile
@@ -173,10 +174,17 @@ const Login = () => {
             <>
               <div className="mt-4 bg-white dark:bg-black dark:text-slate-300">
                 <p>Profile set up!</p>
+                <p className="mb-2">
+                  You can change your profile by clicking on
+                </p>
+                <span>
+                  <ProfileHeader readOnly />
+                </span>
+                <p className="mt-2">on your header section on the dashboard.</p>
               </div>
 
               <button
-                className="mt-4 w-full mx-auto"
+                className="mt-4 w-full bg-teal-500"
                 onClick={() => {
                   promptSQLProfileSetup();
                   setStep(0);

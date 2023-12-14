@@ -15,11 +15,12 @@ const SyncBlocksWithMySQL = () => {
     getTopBlock,
     setLogs,
     promptPendingDialog,
+    _promptErrorDialog,
+    promptErrorDialog,
   } = useContext(appContext);
 
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<false | string>(false);
 
   useEffect(() => {
     if (_sqlProfile && _promptSyncBlocks) {
@@ -60,7 +61,7 @@ const SyncBlocksWithMySQL = () => {
         if (!status && !pending) {
           setLoading(false);
 
-          return setError(error as string);
+          return promptErrorDialog(error as string);
         }
 
         setLoading(false);
@@ -147,7 +148,7 @@ const SyncBlocksWithMySQL = () => {
                   </p>
                 </div>
               )}
-              {!loading && !error && (
+              {!loading && !_promptErrorDialog && (
                 <div className="mt-4">
                   <form className="grid gap-1" onSubmit={handleSubmit}>
                     <div>
@@ -219,27 +220,6 @@ const SyncBlocksWithMySQL = () => {
                 className="mt-4 w-full mx-auto"
                 onClick={() => {
                   setStep(0);
-                  promptSyncBlocks();
-                }}
-              >
-                Back to dashboard
-              </button>
-            </>
-          )}
-
-          {error && (
-            <>
-              <div className="mt-4 dark:text-slate-300 text-center  bg-red-50 py-3">
-                <h3 className="font-bold">Hmm, something went wrong.</h3>
-                <p>
-                  {typeof error === "object" ? JSON.stringify(error) : error}
-                </p>
-              </div>
-              <button
-                className="mt-4 w-full mx-auto"
-                onClick={() => {
-                  setStep(0);
-                  setError(false);
                   promptSyncBlocks();
                 }}
               >

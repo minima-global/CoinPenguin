@@ -18,6 +18,7 @@ const AppProvider = ({ children }: IProps) => {
   const [_logs, setLogs] = useState<string[]>([]);
   const [_dataResults, setDataResults] = useState(null);
   const [_error, setError] = useState<string | false>(false);
+  const [_updateCoins, setCoinsUpdate] = useState(null);
   const [_coinsInfo, setCoinsInfo] = useState(null);
   const [_currentBlock, setCurrentBlock] = useState(null);
   const [_sqlProfile, setSQLProfile] = useState<{
@@ -26,6 +27,7 @@ const AppProvider = ({ children }: IProps) => {
     password: "";
     user: "";
   } | null>(null);
+  const [_promptCoinRetrieval, setPromptCoinRetrieval] = useState(false);
   const [_promptReadMode, setPromptReadMode] = useState(false);
   const [_promptErrorDialog, setPromptErrorDialog] = useState(false);
   const [_promptPendingDialog, setPromptPendingDialog] = useState(false);
@@ -93,6 +95,34 @@ const AppProvider = ({ children }: IProps) => {
     });
   };
 
+  const retrieveCoins = (maxcoins?: number, docker = false): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      (window as any).MDS.cmd(
+        `mysqlcoins action:update ${
+          maxcoins ? `maxcoins:${maxcoins}` : ""
+        } host:${_sqlProfile!.host} database:${_sqlProfile!.database} user:${
+          _sqlProfile!.user
+        } password:${_sqlProfile!.password} maxcoins:${maxcoins}`,
+        (response: any) => {
+          console.log(response);
+          const { pending, status, error } = response;
+          if (pending) {
+            promptPendingDialog();
+            resolve();
+          }
+
+          if (!status && !pending) {
+            promptErrorDialog(error as string);
+            reject();
+          }
+
+          setCoinsUpdate(response.response);
+          resolve();
+        }
+      );
+    });
+  };
+
   const getTopBlock = (): Promise<void> => {
     return new Promise((resolve, reject) => {
       (window as any).MDS.cmd(`block`, (response: any) => {
@@ -124,9 +154,17 @@ const AppProvider = ({ children }: IProps) => {
     setPromptSQLProfile((prevState) => !prevState);
   };
 
+  const promptCoinRetrieval = () => {
+    setPromptCoinRetrieval((prevState) => !prevState);
+  };
+
   const promptErrorDialog = (message: string) => {
+    const clean = message.includes("java.lang.NumberFormatException:")
+      ? message.split("java.lang.NumberFormatException:")[1]
+      : message;
+
     setPromptErrorDialog((prevState) => !prevState);
-    setError((prevState) => (typeof prevState === "string" ? message : false));
+    setError((prevState) => (typeof prevState !== "string" ? clean : false));
   };
 
   const promptPendingDialog = () => {
@@ -155,6 +193,9 @@ const AppProvider = ({ children }: IProps) => {
         _promptSQLProfile,
         promptSQLProfileSetup,
 
+        _promptCoinRetrieval,
+        promptCoinRetrieval,
+
         _error,
         _promptErrorDialog,
         promptErrorDialog,
@@ -175,6 +216,10 @@ const AppProvider = ({ children }: IProps) => {
 
         _currentBlock,
         getTopBlock,
+
+        _updateCoins,
+        retrieveCoins,
+        setCoinsUpdate,
 
         _logs,
         setLogs,

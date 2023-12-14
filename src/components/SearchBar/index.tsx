@@ -7,7 +7,7 @@ const SearchBar = () => {
   return (
     <div
       onClick={query.toggle}
-      className="bg-white dark:text-black hover:outline-teal-500 hover:cursor-pointer outline rounded-full px-2 py-3 font-bold flex"
+      className="bg-white hover:shadow-inner hover:shadow-teal-500 dark:text-black hover:outline-teal-500 hover:cursor-pointer outline rounded-full px-2 py-3 font-bold flex"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"

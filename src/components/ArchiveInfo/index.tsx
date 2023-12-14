@@ -4,52 +4,38 @@ import Dialog from "../Dialog";
 
 const ArchiveInfo = () => {
   const {
+    _sqlProfile,
     _promptArchiveInfo,
     promptArchiveInfo,
     _archiveInfo,
     setArchiveInfo,
+    promptErrorDialog,
   } = useContext(appContext);
 
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<false | string>(false);
-  // Initialize state with an object containing properties for each form input
-  const [formData, setFormData] = useState({
-    host: "minimysql",
-    database: "archivedb",
-    user: "archiveuser",
-    password: "",
-  });
-  const [passwordVisibility, setPasswordVisibility] = useState(false);
-
-  // Handler for input changes
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-
-    // Update the corresponding property in the state object
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
-  };
 
   // Handler for form submission
   const handleSubmit = (e) => {
     e.preventDefault();
+    setLoading(true);
     // Access form data in the state object (formData)
     (window as any).MDS.cmd(
-      `mysql action:info host:${formData.host} database:${formData.database} user:${formData.user} password:${formData.password}`,
+      `mysql action:info host:${_sqlProfile.host} database:${_sqlProfile.database} user:${_sqlProfile.user} password:${_sqlProfile.password}`,
       (response: any) => {
         console.log(response);
         const { pending, status, error } = response;
         if (pending) {
+          setLoading(false);
           return setStep(2);
         }
 
         if (!status && !pending) {
-          return setError(error as string);
+          setLoading(false);
+          return promptErrorDialog(error as string);
         }
 
+        setLoading(false);
         setArchiveInfo(response.response);
         return setStep(1);
       }
@@ -64,7 +50,7 @@ const ArchiveInfo = () => {
   return (
     <Dialog dismiss={promptArchiveInfo}>
       <div className="h-full grid items-center">
-        <div className="bg-white rounded-lg mx-4 md:mx-0 min-h-[40vh] p-4 dark:bg-black text-left">
+        <div className="bg-white rounded-lg mx-4 md:mx-0 min-h-[40vh] p-4 dark:bg-black text-left grid grid-cols-1 grid-rows-[auto_1fr]">
           <div className="grid grid-cols-[1fr_auto] items-center">
             <h1 className="text-lg text-black dark:text-white font-bold">
               Archive Information
@@ -96,57 +82,14 @@ const ArchiveInfo = () => {
           {step === 0 && (
             <>
               <p className="text-sm mt-4">
-                Running{" "}
-                <code className="bg-teal-500 text-[14px] px-2 rounded-full dark:text-black text-white">
-                  mysql action: info
-                </code>{" "}
-                with your login details will get you the current status.
+                Get information on the current state of your archive node along
+                with the MySQL database.
               </p>
               <div className="mt-4">
                 <form className="grid gap-1" onSubmit={handleSubmit}>
-                  <label className="grid">
-                    <span className="mb-1 font-bold">Host</span>
-                    <input
-                      className="bg-slate-200 text-black p-2 rounded-lg"
-                      placeholder="Enter host"
-                      name="host"
-                      onChange={handleInputChange}
-                      value={formData.host}
-                    />
-                  </label>
-                  <label className="grid">
-                    <span className="mb-1 font-bold">Database</span>
-                    <input
-                      className="bg-slate-200 text-black p-2 rounded-lg"
-                      placeholder="Enter db name"
-                      name="database"
-                      onChange={handleInputChange}
-                      value={formData.database}
-                    />
-                  </label>
-                  <label className="grid">
-                    <span className="mb-1 font-bold">User</span>
-                    <input
-                      className="bg-slate-200 text-black p-2 rounded-lg"
-                      placeholder="Enter username"
-                      name="user"
-                      onChange={handleInputChange}
-                      value={formData.user}
-                    />
-                  </label>
-                  <label className="grid">
-                    <span className="mb-1 font-bold">Password</span>
-                    <input
-                      className="bg-slate-200 text-black p-2 rounded-lg"
-                      type={passwordVisibility ? "text" : "password"}
-                      placeholder="Enter password"
-                      name="password"
-                      onChange={handleInputChange}
-                      value={formData.password}
-                    />
-                  </label>
-
-                  <button className="mt-3 w-full">Submit</button>
+                  <button className="mt-3 w-full disabled:bg-opacity-50 disabled:cursor-notallowed disabled:hover:outline-none disabled:cursor-not-allowed bg-black text-white">
+                    Get Report
+                  </button>
                   <button
                     className="mt-2 w-full mx-auto"
                     onClick={promptArchiveInfo}
@@ -159,7 +102,7 @@ const ArchiveInfo = () => {
           )}
           {step === 1 && (
             <>
-              <div className="max-w-md mt-4 mx-auto bg-white dark:bg-black dark:text-slate-300">
+              <div className="mt-4 bg-white dark:bg-black dark:text-slate-300">
                 <table className="w-full border">
                   <thead>
                     <tr className="font-bold">
@@ -245,7 +188,7 @@ const ArchiveInfo = () => {
               <div
                 // TODO
                 onClick={() => console.log("Open security")}
-                className="max-w-md mx-auto mt-4 bg-black dark:bg-white text-black dark:text-slate-300 flex justify-between items-center px-4 py-4"
+                className="mt-4 bg-black dark:bg-white text-black dark:text-slate-300 flex justify-between items-center px-4 py-4"
               >
                 <div className="flex items-center gap-1">
                   <svg
@@ -261,41 +204,12 @@ const ArchiveInfo = () => {
                     Auto-backup
                   </h6>
                 </div>
-                <p>
-                  {_archiveInfo.autobackup ? (
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      strokeWidth="2"
-                      stroke="green"
-                      fill="none"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                      <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
-                      <path d="M9 12l2 2l4 -4" />
-                    </svg>
-                  ) : (
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="24"
-                      height="24"
-                      viewBox="0 0 24 24"
-                      strokeWidth="2"
-                      stroke="red"
-                      fill="none"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    >
-                      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                      <path d="M12 21a9 9 0 0 0 9 -9a9 9 0 0 0 -9 -9a9 9 0 0 0 -9 9a9 9 0 0 0 9 9z" />
-                      <path d="M9 8l6 8" />
-                      <path d="M15 8l-6 8" />
-                    </svg>
-                  )}
+                <p
+                  className={`${
+                    _archiveInfo.autobackup ? "text-teal-500" : "text-red-500"
+                  }`}
+                >
+                  {_archiveInfo.autobackup ? "On" : "Off"}
                 </p>
               </div>
 

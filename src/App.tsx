@@ -20,40 +20,31 @@ import ProfileHeader from "./components/ProfileHeader";
 import ErrorDialog from "./components/ErrorDialog";
 import PendingDialog from "./components/PendingDialog";
 import ReadModeDialog from "./components/ReadMode";
+import CoinRetrieval from "./components/CoinRetriever";
 
 function App() {
-  const {
-    _dataResults,
-    _sqlProfile,
-    promptArchiveInfo,
-    promptSyncBlocks,
-    promptIntegrityCheck,
-    promptSQLProfileSetup,
-  } = useContext(appContext);
+  const { _dataResults } = useContext(appContext);
 
   const { results } = useMatches();
 
-  // console.log(_sqlProfile);
   return (
     <>
       <ArchiveInfo />
       <SyncBlocksWithMySQL />
       <IntegrityCheck />
+      <CoinRetrieval />
 
       <Login />
       <ErrorDialog />
       <PendingDialog />
       <ReadModeDialog />
 
-      {/* <button onClick={promptArchiveInfo}>Info</button>
-      <button onClick={promptSyncBlocks}>Sync blocks</button>
-      <button onClick={promptIntegrityCheck}>Integrity</button> */}
       <div className="grid grid-cols-1 grid-rows-[56px_1fr]">
         <header className="flex justify-between items-center">
-          <div />
-          <div className="flex gap-2 items-center">
+          <div>
             <ProfileHeader />
-
+          </div>
+          <div className="flex gap-2 items-center">
             <SearchBar />
           </div>
         </header>
@@ -98,11 +89,11 @@ function App() {
 
               {!_dataResults && (
                 <div className="text-center max-w-sm mx-auto flex justify-center flex-col items-center gap-2">
-                  <p className="text-slate-400 font-mono">No data queried</p>
+                  <p className="text-teal-500 font-mono">No data queried</p>
                   <div className="flex">
                     <CommandKay pulse />
                   </div>
-                  <p className="text-slate-400 font-mono">
+                  <p className="text-teal-500 font-mono">
                     to begin, or tap the search above
                   </p>
                 </div>
