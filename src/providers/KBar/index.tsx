@@ -6,8 +6,12 @@ interface IProps {
   children: ReactElement;
 }
 const KBar = ({ children }: IProps) => {
-  const { promptSyncBlocks, promptArchiveInfo, promptCoinRetrieval } =
-    useContext(appContext);
+  const {
+    promptSyncBlocks,
+    promptArchiveInfo,
+    promptCoinRetrieval,
+    promptCoinSearchWhere,
+  } = useContext(appContext);
   const actions: Action[] = [
     {
       id: "coinseaarch",
@@ -67,7 +71,7 @@ const KBar = ({ children }: IProps) => {
       name: "Where Query",
       shortcut: ["q"],
       keywords: "search a coin where...",
-      perform: () => (window.location.pathname = "where"),
+      perform: () => promptCoinSearchWhere(),
       subtitle: "Search a coin where... (you can use multiple parameters)",
       icon: (
         <svg

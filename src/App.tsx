@@ -21,6 +21,7 @@ import ErrorDialog from "./components/ErrorDialog";
 import PendingDialog from "./components/PendingDialog";
 import ReadModeDialog from "./components/ReadMode";
 import CoinRetrieval from "./components/CoinRetriever";
+import CoinSearchWhere from "./components/CoinSearchWhere";
 
 function App() {
   const { _dataResults } = useContext(appContext);
@@ -51,8 +52,10 @@ function App() {
         <main className="max-w-md mx-auto grid grid-cols-[1fr_minmax(0,_800px)_1fr] grid-rows-1 h-[calc(100vh_-_56px_-_16px)]">
           <div />
           <section className="grid grid-cols-1 grid-rows-[1fr_2fr]">
-            <div />
-            <div className="max-w-md">
+            <div className="py-8">
+              <CoinSearchWhere />
+            </div>
+            <div className="max-w-md mx-auto">
               <KBarPortal>
                 <KBarPositioner>
                   <KBarAnimator>
@@ -96,6 +99,13 @@ function App() {
                   <p className="text-teal-500 font-mono">
                     to begin, or tap the search above
                   </p>
+                </div>
+              )}
+              {_dataResults && (
+                <div>
+                  {_dataResults.map((coin) => (
+                    <p>{coin.address}</p>
+                  ))}
                 </div>
               )}
             </div>

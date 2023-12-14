@@ -79,7 +79,7 @@ const Login = () => {
         <div className="bg-white rounded-lg mx-4 md:mx-0 min-h-[40vh] p-4 dark:bg-black text-left grid grid-cols-1 grid-rows-[auto_1fr]">
           <div className="grid grid-cols-[1fr_auto] items-center">
             <h1 className="text-lg text-black dark:text-white font-bold">
-              Setup MySQL Profile
+              {step === 0 ? "Setup MySQL Profile" : "Profile Setup!"}
             </h1>
             <a
               href="https://docs.minima.global/docs/runanode/archivenodes/"
@@ -173,7 +173,6 @@ const Login = () => {
           {step === 1 && (
             <>
               <div className="mt-4 bg-white dark:bg-black dark:text-slate-300">
-                <p>Profile set up!</p>
                 <p className="mb-2">
                   You can change your profile by clicking on
                 </p>

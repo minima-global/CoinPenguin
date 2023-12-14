@@ -17,6 +17,7 @@ const AppProvider = ({ children }: IProps) => {
   /** Minima stuff */
   const [_logs, setLogs] = useState<string[]>([]);
   const [_dataResults, setDataResults] = useState(null);
+  const [_loading, setLoading] = useState(false);
   const [_error, setError] = useState<string | false>(false);
   const [_updateCoins, setCoinsUpdate] = useState(null);
   const [_coinsInfo, setCoinsInfo] = useState(null);
@@ -28,8 +29,10 @@ const AppProvider = ({ children }: IProps) => {
     user: "";
   } | null>(null);
   const [_promptCoinRetrieval, setPromptCoinRetrieval] = useState(false);
+  const [_promptAddressList, setPromptAddressList] = useState(false);
   const [_promptReadMode, setPromptReadMode] = useState(false);
   const [_promptErrorDialog, setPromptErrorDialog] = useState(false);
+  const [_promptCoinSearchWhere, setPromptCoinSearchWhere] = useState(false);
   const [_promptPendingDialog, setPromptPendingDialog] = useState(false);
   const [_promptArchiveInfo, setPromptArchiveInfo] = useState(false);
   const [_promptSyncBlocks, setPromptSyncBlocks] = useState(false);
@@ -142,6 +145,10 @@ const AppProvider = ({ children }: IProps) => {
     setPromptArchiveInfo((prevState) => !prevState);
   };
 
+  const promptAddressList = () => {
+    setPromptAddressList((prevState) => !prevState);
+  };
+
   const promptSyncBlocks = () => {
     setPromptSyncBlocks((prevState) => !prevState);
   };
@@ -156,6 +163,10 @@ const AppProvider = ({ children }: IProps) => {
 
   const promptCoinRetrieval = () => {
     setPromptCoinRetrieval((prevState) => !prevState);
+  };
+
+  const promptCoinSearchWhere = () => {
+    setPromptCoinSearchWhere((prevState) => !prevState);
   };
 
   const promptErrorDialog = (message: string) => {
@@ -180,6 +191,12 @@ const AppProvider = ({ children }: IProps) => {
       value={{
         _promptReadMode,
         setPromptReadMode,
+
+        _promptAddressList,
+        promptAddressList,
+
+        _promptCoinSearchWhere,
+        promptCoinSearchWhere,
 
         _promptArchiveInfo,
         promptArchiveInfo,
@@ -220,6 +237,9 @@ const AppProvider = ({ children }: IProps) => {
         _updateCoins,
         retrieveCoins,
         setCoinsUpdate,
+
+        _loading,
+        setLoading,
 
         _logs,
         setLogs,
